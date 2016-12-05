@@ -1,0 +1,51 @@
+
+Reduce variable, 
+Preditive variables.
+
+
+- (1. Categorical -> Numeric if needed )
+
+reduce varaibles?
+PCA, on all continous variabless.
+
+
+- (1. Numeric to categorical)
+
+- bin
+	- (based on entropi / gini)
+	- (clustering e.g. kmeans
+			- merge bins
+			- iterater over different bin numbers) 
+
+
+
+Variables importances. 
+1. "Correlation"
+2. "Feature elemination (random forest)"
+3. "Regularization (in training penalizing number of variables."
+
+
+- all categorical 
+model: 
+randow forest
+
+xgboost. 
+
+
+- all numeric:
+regression with random forest
+decision tree
+xgboost
+(neural networks - sparse autoencoder to extract fetures)
+
+
+
+
+
+
+
+
+
+
+
+
