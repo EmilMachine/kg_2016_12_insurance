@@ -34,8 +34,19 @@ target_col = ['loss']
 
 
 
-train_numeric = np.array(df[contenious_col + target_col])
-print(train_numeric[:2,:])
+train_data = np.array(df[contenious_col])
+train_target = np.array(df[target_col])
+
+#print(train_data[:2,:])
+
+from sklearn import linear_model
+reg = linear_model.LinearRegression()
+
+reg.fit(train_data,train_target)
+
+print(reg.coef_)
+print(reg.score(train_data,train_target))
+
 
 
 #print(.head(3))
