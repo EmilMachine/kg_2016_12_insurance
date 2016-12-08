@@ -32,10 +32,43 @@ contenious_col = [i for i in column_names if 'cont' in i]
 target_col = ['loss']
 
 
+df2 = df.dropna() #= npf_raw[np.isfinite(npf_raw).all(axis=1)]
+print(df.shape)
+print(df2.shape)
+df_with_dummies = pd.get_dummies(df2[categorical_col])
+
+#print(df.isnull().any())
+
+from sklearn import linear_model
+
+from sklearn.preprocessing import MinMaxScaler 
+
+df_num_rescaled = df2[contenious_col].apply(lambda x: MinMaxScaler().fit_transform(x))
+
+df_x_train =  pd.concat([df_with_dummies, df_num_rescaled], axis=1)
+
+print(df_x_train.max(axis=1))
+
+df_y_train = df2[target_col]
+
+# Create linear regression object
+regr = linear_model.LinearRegression()
+
+# Train the model using the training sets
+regr.fit(df_x_train, df_y_train)
+
+# should be test / validation set
+print("Mean squared error: %.2f"
+      % np.mean((regr.predict(df_x_train) - df_y_train) ** 2))
 
 
-train_numeric = np.array(df[contenious_col + target_col])
-print(train_numeric[:2,:])
+###
+# http://scikit-learn.org/stable/auto_examples/linear_model/plot_ols.html
+###
+
+###
+# http://stackoverflow.com/questions/13413590/how-to-drop-rows-of-pandas-dataframe-whose-value-of-certain-column-is-nan
+###
 
 
 #print(.head(3))
