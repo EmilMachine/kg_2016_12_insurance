@@ -33,10 +33,14 @@ contenious_col = [i for i in column_names if 'cont' in i]
 target_col = ['loss']
 
 
-train_data = np.array(df[contenious_col])
-train_target = np.array(df[target_col])
+df2 = df.dropna() #= npf_raw[np.isfinite(npf_raw).all(axis=1)]
+print(df.shape)
+print(df2.shape)
+df_with_dummies = pd.get_dummies(df2[categorical_col])
 
-#print(train_data[:2,:])
+#print(df.isnull().any())
+
+from sklearn import linear_model
 
 ## ////////////////////////////////////////
 ### SIMPLE LINEAR MODEL
@@ -48,34 +52,34 @@ print(reg.coef_)
 # self evaluated
 print(reg.score(train_data,train_target))
 
+from sklearn.preprocessing import MinMaxScaler 
+
+df_num_rescaled = df2[contenious_col].apply(lambda x: MinMaxScaler().fit_transform(x))
+
+df_x_train =  pd.concat([df_with_dummies, df_num_rescaled], axis=1)
+
+print(df_x_train.max(axis=1))
+
+df_y_train = df2[target_col]
+
+# Create linear regression object
+regr = linear_model.LinearRegression()
+
+# Train the model using the training sets
+regr.fit(df_x_train, df_y_train)
+
+# should be test / validation set
+print("Mean squared error: %.2f"
+      % np.mean((regr.predict(df_x_train) - df_y_train) ** 2))
 
 
-### ///////////////////////////////////////
-### XGBoost
-# requires to train it
-import sys
-xgboost_path = '/Users/emil/Documents/code/kaggle/xgboost/python-package'
-sys.path.append(xgboost_path)
-# INSTALL GUIDE http://xgboost.readthedocs.io/en/latest/build.html
-import xgboost as xgb
+###
+# http://scikit-learn.org/stable/auto_examples/linear_model/plot_ols.html
+###
 
-#X_train = df.drop(target_col[0],axis=1)
-X_train = df[contenious_col]
-Y_train = df[target_col]
-dtrain = xgb.DMatrix(X_train, Y_train)
-
-## Simple training
-params = {"objective": "reg:linear"}#, "booster":"gblinear"}
-gbm = xgb.train(dtrain=dtrain,params=params)
-# todo EVAL
-
-## XGBOOST WITH CROSS VALIDATION
-#https://github.com/dmlc/xgboost/blob/master/demo/guide-python/cross_validation.py
-param = {'max_depth':2, 'eta':1, 'silent':1, 'objective':'reg:linear'}
-num_round = 2
-xgb.cv(param, dtrain, num_round, nfold=5,
-       metrics={'error'}, seed = 0,
-       callbacks=[xgb.callback.print_evaluation(show_stdv=True)])
+###
+# http://stackoverflow.com/questions/13413590/how-to-drop-rows-of-pandas-dataframe-whose-value-of-certain-column-is-nan
+###
 
 
 #print(.head(3))
