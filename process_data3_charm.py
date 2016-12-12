@@ -113,13 +113,31 @@ dtrain = xgb.DMatrix(df_x_train, df_y_train)
 
 ## XGBOOST WITH CROSS VALIDATION
 #https://github.com/dmlc/xgboost/blob/master/demo/guide-python/cross_validation.py
-param = {'max_depth':2, 'eta':1, 'silent':1, 'objective':'reg:linear'}
+from sklearn import cross_validation, metrics
+
+param = {'max_depth':5, 'eta':1, 'silent':1, 'objective':'reg:linear_model', 'n_estimators':'10000'}
 num_round = 2
 cv_xgb = xgb.cv(param, dtrain, num_round, nfold=5,
-       metrics={'error'}, seed = 0,
+       metrics='rmse', seed = 0,
        callbacks=[xgb.callback.print_evaluation(show_stdv=True)])
 
-final_xgb = xgb.train(params, dtrain, num_boost_round = 10)
+
+
+#metrics.accuracy_score(cv_xgb)
+print('done')
+
+### LIST OF PARAMETERS 
+#https://github.com/dmlc/xgboost/blob/master/doc/parameter.md
+
+### META PARAMETERS OPTIMIZATION 
+#https://www.dataiku.com/learn/guide/code/python/advanced-xgboost-tuning.html
+
+
+
+#final_xgb = xgb.train(params, dtrain, num_boost_round = 10)
+
+
+
 
 
 
@@ -143,22 +161,29 @@ df_test = pd.read_csv(base_path+in_file)
 
 # rescale and df_dummy
 df_test_dummied = pd.get_dummies(df_test[categorical_col])
-df_test_dummied.reindex(columns = df_cat_dummied.columns, fill_value=0)
+a = df_test_dummied.columns.values.flatten().tolist()
+b = df_cat_dummied.columns.values.flatten().tolist()
+cat_not_seen = set(a).difference(b)
+df_test_dummied.drop(cat_not_seen, axis=1, inplace=True)
 
-df_test_rescaled = df_test[contenious_col]
+
+df_test_dummied2 = df_test_dummied.reindex(columns = df_cat_dummied.columns, fill_value=0)
+#a = df_test_dummied.columns.values.flatten().tolist()
+#b = df_cat_dummied.columns.values.flatten().tolist()
+
+#print(df_cat_dummied.shape)
+#print(df_test_dummied2.shape)
+
+
+df_test_rescaled = df_test[contenious_col].copy()
 df_test_rescaled[contenious_col] = minmax_scale.transform(df_test[contenious_col])
 
 # df_test
 # df_test_rescaled.dtypes.names
 
 ### REMOVE DUMMY COLS NEVER SEEN IN TRAINING
-a = df_test_dummied.columns.values.flatten().tolist()
-b = df_cat_dummied.columns.values.flatten().tolist()
-cat_not_seen = set(a).difference(b)
-df_test_dummied.drop(cat_not_seen, axis=1, inplace=True)
 
-df_x_test = pd.concat([df_test_dummied, df_test_rescaled], axis=1)
-
+df_x_test = pd.concat([df_test_dummied2, df_test_rescaled], axis=1)
 # numpy way
 #df_x_test = np.concatenate([np.array(df_test_dummied), df_test_rescaled], axis=1)
 
@@ -175,10 +200,11 @@ pred_id_list = df_test[id_col].values.flatten().tolist()
 
 # format it for writing
 final = zip(pred_id_list,list(pred_y_test))
-final_string = '\n'.join(['%i,%f'%i for i in final])
+final_string = 'id,loss\n' + '\n'.join(['%i,%f'%i for i in final])
 
 # write
 with open(base_path+out_file,'w') as f:
     f.write(final_string)
 
+print('done')
 
